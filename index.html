@@ -84,6 +84,7 @@ h1 {
 <div id="game">
   <div class="question-box" id="questionBox">Press Start to begin!</div>
   <div id="choices"></div>
+  <div id="scoreDisplay" style="margin-top:10px; font-size:1.2rem;"></div>
   <button onclick="startNormal()" class="btn">Start</button>
 </div>
 
@@ -131,26 +132,29 @@ const secretQuestions = [
   {q:"Which MacOS is named after California?", c:["Monterey","Catalina","Windows 10","Sierra"], a:0},
   {q:"Which Apple device has M1 chip?", c:["MacBook Air","iPhone 12","iPad Pro","iMac"], a:0},
   {q:"Which device is wearable?", c:["Apple Watch","Fitbit","Galaxy Watch","Garmin"], a:0},
-  {q:"Which Apple product is the wireless headphones?", c:["AirPods","Buds","EarCandy","Beats"], a:0},
+  {q:"Which Apple product is wireless headphones?", c:["AirPods","Buds","EarCandy","Beats"], a:0},
   {q:"Which assistant responds to 'Hey Siri'?", c:["Siri","Alexa","Cortana","Google Assistant"], a:0},
   {q:"Which device is Apple’s laptop?", c:["MacBook","Surface","ThinkPad","Chromebook"], a:0}
 ];
 
 let index = 0;
 let currentSet = normalQuestions;
+let correctCount = 0;
 
-function startNormal() { index=0; currentSet=normalQuestions; nextQuestion(); }
+function startNormal(){ index=0; currentSet=normalQuestions; correctCount=0; updateScore(); nextQuestion(); }
+function startSecret(){ index=0; currentSet=secretQuestions; correctCount=0; updateScore(); nextQuestion(); }
 
-function nextQuestion() {
-  const box = document.getElementById("questionBox");
-  const choicesDiv = document.getElementById("choices");
-
-  if(index>=currentSet.length){ box.textContent = "🎉 All done!"; choicesDiv.innerHTML=""; return; }
-
+function nextQuestion(){
+  const box=document.getElementById("questionBox");
+  const choicesDiv=document.getElementById("choices");
+  if(index>=currentSet.length){
+    box.textContent=`🎉 All done! You got ${correctCount} out of ${currentSet.length}!`;
+    choicesDiv.innerHTML="";
+    return;
+  }
   const q=currentSet[index];
   box.textContent=q.q;
   choicesDiv.innerHTML="";
-
   q.c.forEach((choice,i)=>{
     const btn=document.createElement("div");
     btn.className="choice";
@@ -161,22 +165,22 @@ function nextQuestion() {
 }
 
 function handleAnswer(correct){
-  if(correct){ playCorrect(); startConfetti(); } else { playWrong(); }
+  if(correct){ correctCount++; playCorrect(); startConfetti(); } else { playWrong(); }
+  updateScore();
   index++; setTimeout(nextQuestion,400);
 }
 
+function updateScore(){ document.getElementById("scoreDisplay").textContent=`Score: ${correctCount} / ${currentSet.length}`; }
 function playCorrect(){ document.getElementById("correctSound").play(); }
 function playWrong(){ document.getElementById("wrongSound").play(); }
 
-function startSecret(){ index=0; currentSet=secretQuestions; nextQuestion(); }
-
+// Secret trigger
 document.getElementById("secretTrigger").addEventListener('click', startSecret);
 
-// Confetti code
-const canvas = document.getElementById("confettiCanvas");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// Confetti
+const canvas=document.getElementById("confettiCanvas");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth; canvas.height=window.innerHeight;
 function random(min,max){return Math.random()*(max-min)+min;}
 let confettiParticles=[];
 function startConfetti(){
